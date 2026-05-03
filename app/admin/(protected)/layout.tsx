@@ -6,7 +6,9 @@ import Link from 'next/link'
 
 // Client Component: enforce admin guard on client side
 export default function AdminProtectedLayout({ children }: { children: React.ReactNode }) {
-  const { data: session, status } = useSession()
+  const sessionResult = useSession()
+  const session = sessionResult?.data
+  const status = sessionResult?.status ?? 'loading'
   const router = useRouter()
 
   useEffect(() => {
@@ -20,6 +22,7 @@ export default function AdminProtectedLayout({ children }: { children: React.Rea
     await signOutNextAuth({ callbackUrl: '/admin/login' })
   }
 
+  if (status === 'loading') return null
   if (!session) return null
 
   return (
