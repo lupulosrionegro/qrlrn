@@ -1,24 +1,26 @@
-import { useSession } from 'next-auth/react'
+"use client";
+import { useEffect } from 'react'
+import { useSession, signOut as signOutNextAuth } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { signOut } from '@/lib/auth'
 
+// Client Component: enforce admin guard on client side
 export default function AdminProtectedLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (status === 'loading') return
     if (!session) {
       router.push('/admin/login')
-    } else {
-      setLoading(false)
     }
   }, [session, status, router])
 
-  if (loading) return null
+  const handleSignOut = async () => {
+    await signOutNextAuth({ callbackUrl: '/admin/login' })
+  }
+
+  if (!session) return null
 
   return (
     <div className="min-h-screen bg-[#0f1a0f] text-[#e8f0e8] font-sans">
@@ -33,16 +35,7 @@ export default function AdminProtectedLayout({ children }: { children: React.Rea
           <Link href="/admin/nuevo" className="text-[#6a9a6a] hover:text-[#8aba8a] transition-colors">Nuevo lote</Link>
           <Link href="/admin/variedades" className="text-[#6a9a6a] hover:text-[#8aba8a] transition-colors">Variedades</Link>
           <Link href="/admin/cargar" className="text-[#6a9a6a] hover:text-[#8aba8a] transition-colors">Cargar archivos</Link>
-          <form
-            action={async () => {
-              'use server'
-              await signOut({ redirectTo: '/admin/login' })
-            }}
-          >
-            <button type="submit" className="text-[#6a9a6a] hover:text-red-400 transition-colors">
-              Salir
-            </button>
-          </form>
+          <button onClick={handleSignOut} className="text-[#6a9a6a] hover:text-red-400 transition-colors">Salir</button>
         </div>
       </nav>
       <div className="max-w-[960px] mx-auto px-6 py-8">{children}</div>
